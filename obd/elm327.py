@@ -154,19 +154,19 @@ class ELM327:
             return
 
         # -------------------------- ATE0 (echo OFF) --------------------------
-        r = self.__send(b"ATE0")
+        r = self.__send(b"ATE0", delay = 1)
         if not self.__isok(r, expectEcho=True):
             self.__error("ATE0 did not return 'OK'")
             return
 
         # ------------------------- ATH1 (headers ON) -------------------------
-        r = self.__send(b"ATH1")
+        r = self.__send(b"ATH1", delay = 1)
         if not self.__isok(r):
             self.__error("ATH1 did not return 'OK', or echoing is still ON")
             return
 
         # ------------------------ ATL0 (linefeeds OFF) -----------------------
-        r = self.__send(b"ATL0")
+        r = self.__send(b"ATL0", delay = 1)
         if not self.__isok(r):
             self.__error("ATL0 did not return 'OK'")
             return
@@ -176,7 +176,7 @@ class ELM327:
 
         # -------------------------- AT RV (read volt) ------------------------
         if check_voltage:
-            r = self.__send(b"AT RV")
+            r = self.__send(b"AT RV", delay = 1)
             if not r or len(r) != 1 or r[0] == '':
                 self.__error("No answer from 'AT RV'")
                 return
@@ -220,7 +220,7 @@ class ELM327:
             return self.auto_protocol()
 
     def manual_protocol(self, protocol_):
-        r = self.__send(b"ATTP" + protocol_.encode())
+        r = self.__send(b"ATTP" + protocol_.encode(), delay = 1)
         r0100 = self.__send(b"0100")
 
         if not self.__has_message(r0100, "UNABLE TO CONNECT"):
@@ -334,12 +334,14 @@ class ELM327:
 
     def __isok(self, lines, expectEcho=False):
         if not lines:
+            print('no lines')
             return False
         if expectEcho:
             # don't test for the echo itself
             # allow the adapter to already have echo disabled
             return self.__has_message(lines, 'OK')
         else:
+            logger.debug(lines)
             return len(lines) == 1 and lines[0] == 'OK'
 
     def __has_message(self, lines, text):
